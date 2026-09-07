@@ -45,6 +45,8 @@ class MainActivity : AppCompatActivity() {
             val month = selectedMonth
             val birthYear = selectedYear
 
+            val zodiac = getZodiac(day, month)
+
             val gender = when (genderGroup.checkedRadioButtonId) {
                 R.id.male -> "Мужчина"
                 R.id.female -> "Женщина"
@@ -59,11 +61,55 @@ class MainActivity : AppCompatActivity() {
                 difficulty = seekBar.progress,
                 birthDay = day,
                 birthMonth = month,
+                zodiac = zodiac,
                 birthYear = birthYear,
-                zodiac = "",
                 gender = gender
             )
+
+            tvResult.text =
+                "${player.surname} ${player.name} ${player.otchestvo}\n" +
+                        "Пол: ${player.gender}\n" +
+                        "Курс: ${player.course}\n" +
+                        "Сложность: ${player.difficulty}\n" +
+                        "Дата: ${player.birthDay}.${player.birthMonth}.${player.birthYear}\n" +
+                        "Зодиак: ${player.zodiac}"
+            ivZodiac.setImageResource(zodiacImage(zodiac))
         }
     }
 
+    private fun getZodiac(day: Int, month: Int): String {
+        return when (month) {
+            1 -> if (day < 20) "Козерог" else "Водолей"
+            2 -> if (day < 19) "Водолей" else "Рыбы"
+            3 -> if (day < 21) "Рыбы" else "Овен"
+            4 -> if (day < 20) "Овен" else "Телец"
+            5 -> if (day < 21) "Телец" else "Близнецы"
+            6 -> if (day < 21) "Близнецы" else "Рак"
+            7 -> if (day < 23) "Рак" else "Лев"
+            8 -> if (day < 23) "Лев" else "Дева"
+            9 -> if (day < 23) "Дева" else "Весы"
+            10 -> if (day < 23) "Весы" else "Скорпион"
+            11 -> if (day < 22) "Скорпион" else "Стрелец"
+            12 -> if (day < 22) "Стрелец" else "Козерог"
+            else -> ""
+        }
+    }
+
+    private fun zodiacImage(zodiac: String): Int {
+        return when (zodiac) {
+            "Овен" -> R.drawable.oven
+            "Телец" -> R.drawable.telec
+            "Близнецы" -> R.drawable.blizneci
+            "Рак" -> R.drawable.rak
+            "Лев" -> R.drawable.lev
+            "Дева" -> R.drawable.deva
+            "Весы" -> R.drawable.vesi
+            "Скорпион" -> R.drawable.scorpion
+            "Стрелец" -> R.drawable.strelec
+            "Козерог" -> R.drawable.kozerog
+            "Водолей" -> R.drawable.vodoley
+            "Рыбы" -> R.drawable.ribi
+            else -> R.drawable.ic_launcher_foreground
+        }
+    }
 }
