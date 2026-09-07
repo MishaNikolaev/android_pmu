@@ -19,4 +19,6 @@
     <string name="show">Показать</string>
     <string name="dif_bar">Выберите уровень сложности</string>
     <string name="text_date">Укажите дату рождения</string>
+
+    <string name="tab_registration">Регистрация</string>
 </resources>
