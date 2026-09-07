@@ -15,4 +15,8 @@
         <item>3 курс</item>
         <item>4 курс</item>
     </string-array>
+
+    <string name="show">Показать</string>
+    <string name="dif_bar">Выберите уровень сложности</string>
+    <string name="text_date">Укажите дату рождения</string>
 </resources>
