@@ -6,8 +6,6 @@
 
     <string name="text_greeting">Регистрация</string>
     <string name="choose_gender">Выберите пол</string>
-    <string name="male_gender">Мужчина</string>
-    <string name="female_gender">Женщина</string>
 
     <string-array name="course_list">
         <item>1 курс</item>
@@ -16,9 +14,14 @@
         <item>4 курс</item>
     </string-array>
 
-    <string name="show">Показать</string>
-    <string name="dif_bar">Выберите уровень сложности</string>
     <string name="text_date">Укажите дату рождения</string>
+    <string name="dif_bar">Выберите уровень сложности</string>
+    <string name="male_gender">Мужчина</string>
+    <string name="female_gender">Женщина</string>
+    <string name="show">Показать</string>
 
-    <string name="tab_registration">Регистрация</string>
+    <string name="author_photo">Фото автора</string>
+    <string name="author_nikolaev">Николаев ИП-311</string>
+    <string name="author_terentyev">Терентьев ИП-311</string>
+
 </resources>
