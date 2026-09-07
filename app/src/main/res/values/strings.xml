@@ -1,3 +1,18 @@
 <resources>
-    <string name="app_name">android_pmu</string>
+    <string name="app_name">pmu_android</string>
+    <string name="name">Имя</string>
+    <string name="otchestvo">Отчество</string>
+    <string name="surname">Фамилия</string>
+
+    <string name="text_greeting">Регистрация</string>
+    <string name="choose_gender">Выберите пол</string>
+    <string name="male_gender">Мужчина</string>
+    <string name="female_gender">Женщина</string>
+
+    <string-array name="course_list">
+        <item>1 курс</item>
+        <item>2 курс</item>
+        <item>3 курс</item>
+        <item>4 курс</item>
+    </string-array>
 </resources>
