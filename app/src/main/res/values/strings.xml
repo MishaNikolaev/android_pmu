@@ -24,4 +24,9 @@
     <string name="author_nikolaev">Николаев ИП-311</string>
     <string name="author_terentyev">Терентьев ИП-311</string>
 
+    <string name="tab_registration">Регистрация</string>
+    <string name="tab_rules">Правила</string>
+    <string name="tab_authors">Авторы</string>
+    <string name="tab_settings">Настройки</string>
+
 </resources>
