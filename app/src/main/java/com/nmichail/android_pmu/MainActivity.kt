@@ -22,7 +22,8 @@ class MainActivity : AppCompatActivity() {
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = when (position) {
                 0 -> getString(R.string.tab_registration)
-                1 -> getString(R.string.tab_authors)
+                1 -> getString(R.string.tab_rules)
+                2 -> getString(R.string.tab_authors)
                 else -> ""
             }
         }.attach()
