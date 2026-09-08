@@ -13,6 +13,7 @@ class PagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity)
             0 -> RegistrationFragment()
             1 -> RulesFragment()
             2 -> AuthorsFragment()
+            3 -> SettingsFragment()
             else -> error("Неизвестная вкладка: $position")
         }
     }
