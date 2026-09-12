@@ -35,4 +35,6 @@
     <string name="settings_bonus_interval">Интервал бонусов (сек): %d</string>
     <string name="settings_round_duration">Длительность раунда (сек): %d</string>
 
+    <string name="start_game">Начать игру</string>
+
 </resources>

@@ -29,4 +29,8 @@ class MainActivity : AppCompatActivity() {
             }
         }.attach()
     }
+
+    fun openGame() {
+        TODO("Not yet implemented")
+    }
 }
