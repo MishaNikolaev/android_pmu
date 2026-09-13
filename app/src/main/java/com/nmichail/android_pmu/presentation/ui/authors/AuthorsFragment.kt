@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.presentation.ui
+package com.nmichail.android_pmu.presentation.ui.authors
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.ListView
 import androidx.fragment.app.Fragment
 import com.nmichail.android_pmu.R
-import com.nmichail.android_pmu.domain.Author
+import com.nmichail.android_pmu.domain.model.Author
 
 class AuthorsFragment : Fragment() {
 

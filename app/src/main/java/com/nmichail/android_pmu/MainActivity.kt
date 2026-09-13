@@ -8,7 +8,7 @@ import androidx.core.view.isVisible
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import com.nmichail.android_pmu.domain.GameSettings
+import com.nmichail.android_pmu.domain.model.GameSettings
 import com.nmichail.android_pmu.presentation.ui.PagerAdapter
 import com.nmichail.android_pmu.presentation.ui.game.GameFragment
 import com.nmichail.android_pmu.presentation.ui.game.GameResultFragment

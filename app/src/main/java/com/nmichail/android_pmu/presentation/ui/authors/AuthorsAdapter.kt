@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.presentation.ui
+package com.nmichail.android_pmu.presentation.ui.authors
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -8,7 +8,7 @@ import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.TextView
 import com.nmichail.android_pmu.R
-import com.nmichail.android_pmu.domain.Author
+import com.nmichail.android_pmu.domain.model.Author
 
 class AuthorsAdapter(
     context: Context,

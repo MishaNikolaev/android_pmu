@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.presentation.ui
+package com.nmichail.android_pmu.presentation.ui.rules
 
 import android.os.Bundle
 import android.view.LayoutInflater

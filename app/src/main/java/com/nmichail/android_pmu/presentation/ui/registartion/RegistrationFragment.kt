@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.presentation.ui
+package com.nmichail.android_pmu.presentation.ui.registartion
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,7 +14,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.nmichail.android_pmu.R
-import com.nmichail.android_pmu.domain.Player
+import com.nmichail.android_pmu.domain.model.Player
 
 class RegistrationFragment : Fragment() {
 

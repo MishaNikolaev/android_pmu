@@ -3,6 +3,10 @@ package com.nmichail.android_pmu.presentation.ui
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.nmichail.android_pmu.presentation.ui.authors.AuthorsFragment
+import com.nmichail.android_pmu.presentation.ui.registartion.RegistrationFragment
+import com.nmichail.android_pmu.presentation.ui.rules.RulesFragment
+import com.nmichail.android_pmu.presentation.ui.settings.SettingsFragment
 
 class PagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
 
