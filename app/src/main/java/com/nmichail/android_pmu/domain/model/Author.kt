@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.domain
+package com.nmichail.android_pmu.domain.model
 
 data class Author(
     val name: String,

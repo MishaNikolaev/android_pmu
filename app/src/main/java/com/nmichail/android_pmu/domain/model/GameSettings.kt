@@ -1,6 +1,6 @@
-package com.nmichail.android_pmu.domain
+package com.nmichail.android_pmu.domain.model
 
-data class GameSettings (
+data class GameSettings(
     val gameSpeed: Int,
     val maxTarakani: Int,
     val bonusIntervalSec: Int,
