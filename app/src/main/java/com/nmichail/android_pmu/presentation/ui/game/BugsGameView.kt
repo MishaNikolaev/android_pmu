@@ -76,7 +76,8 @@ class BugsGameView @JvmOverloads constructor(
             val movementAngle =
                 Math.toDegrees(kotlin.math.atan2(bug.vy.toDouble(), bug.vx.toDouble()))
                     .toFloat() + 90f
-            val wiggle = kotlin.math.sin(currentTime / 60.0).toFloat() * 4f
+//            val wiggle = kotlin.math.sin(currentTime / 60.0).toFloat() * 4f
+            val wiggle = kotlin.math.sin(currentTime / 45.0).toFloat() * 12f
             canvas.rotate(movementAngle + wiggle)
             canvas.drawBitmap(
                 bug.bitmap,
@@ -114,6 +115,18 @@ class BugsGameView @JvmOverloads constructor(
         if (w <= 0f || h <= 0f) return
 
         bugs.forEach { bug ->
+            if (Random.nextFloat() < 0.05f) {
+                val currentSpeed = hypot(bug.vx, bug.vy)
+
+                val currentAngle = kotlin.math.atan2(bug.vy.toDouble(), bug.vx.toDouble())
+
+                val deltaAngle = (Random.nextFloat() - 0.5f) * Math.toRadians(60.0)
+                val newAngle = currentAngle + deltaAngle
+
+                bug.vx = (cos(newAngle) * currentSpeed).toFloat()
+                bug.vy = (sin(newAngle) * currentSpeed).toFloat()
+            }
+
             bug.x += bug.vx
             bug.y += bug.vy
 
