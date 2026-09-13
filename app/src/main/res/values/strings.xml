@@ -20,14 +20,14 @@
     <string name="female_gender">Женщина</string>
     <string name="show">Показать</string>
 
-    <string name="author_photo">Фото автора</string>
-    <string name="author_nikolaev">Николаев ИП-311</string>
-    <string name="author_terentyev">Терентьев ИП-311</string>
-
     <string name="tab_registration">Регистрация</string>
     <string name="tab_rules">Правила</string>
     <string name="tab_authors">Авторы</string>
     <string name="tab_settings">Настройки</string>
+
+    <string name="author_photo">Фото автора</string>
+    <string name="author_nikolaev">Николаев ИП-311</string>
+    <string name="author_terentyev">Терентьев ИП-311</string>
 
     <string name="settings_title">Настройки игры</string>
     <string name="settings_game_speed">Скорость игры: %d</string>
@@ -36,10 +36,10 @@
     <string name="settings_round_duration">Длительность раунда (сек): %d</string>
 
     <string name="start_game">Начать игру</string>
-    <string name="game_pause">Пауза</string>
-    <string name="game_timer">Время: %d</string>
-    <string name="game_resume">Продолжить</string>
-    <string name="game_exit">Выход</string>
     <string name="game_score">Очки: %d</string>
+    <string name="game_timer">Время: %d</string>
+    <string name="game_pause">Пауза</string>
+    <string name="game_resume">Продолжить</string>
+
 
 </resources>
