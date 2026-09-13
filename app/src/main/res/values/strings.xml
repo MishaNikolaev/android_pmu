@@ -40,6 +40,11 @@
     <string name="game_timer">Время: %d</string>
     <string name="game_pause">Пауза</string>
     <string name="game_resume">Продолжить</string>
-
+    <string name="game_exit">Выход</string>
+    <string name="game_over">Раунд окончен! Очки: %d</string>
+    <string name="game_result_title">Результат</string>
+    <string name="game_result_score">Ваш результат: %d</string>
+    <string name="game_new">Новая игра</string>
+    <string name="game_to_menu">В главное меню</string>
 
 </resources>

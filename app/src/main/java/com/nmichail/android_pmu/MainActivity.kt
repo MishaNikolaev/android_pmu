@@ -11,6 +11,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.nmichail.android_pmu.domain.GameSettings
 import com.nmichail.android_pmu.presentation.ui.PagerAdapter
 import com.nmichail.android_pmu.presentation.ui.game.GameFragment
+import com.nmichail.android_pmu.presentation.ui.game.GameResultFragment
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         gameSpeed = 50,
         maxTarakani = 5,
         bonusIntervalSec = 10,
-        roundDurationSec = 60 // 60 поменять и протестить ее изменение в настройках
+        roundDurationSec = 60
     )
 
     private lateinit var tabsContainer: View
@@ -75,6 +76,17 @@ class MainActivity : AppCompatActivity() {
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.gameContainer, GameFragment())
+            .commit()
+    }
+
+    fun openGameResult(score: Int) {
+        tabsContainer.isVisible = false
+        viewPager.isUserInputEnabled = false
+        gameContainer.isVisible = true
+        gameContainer.bringToFront()
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.gameContainer, GameResultFragment.newInstance(score))
             .commit()
     }
 

@@ -186,6 +186,7 @@ class GameFragment : Fragment() {
 
     private fun finishRound() {
         stopGameLoop()
+        (activity as? MainActivity)?.openGameResult(score)
     }
 
     private fun leaveToTab(tabIndex: Int) {
