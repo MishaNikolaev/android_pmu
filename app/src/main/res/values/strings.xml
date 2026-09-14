@@ -22,6 +22,7 @@
 
     <string name="tab_registration">Регистрация</string>
     <string name="tab_rules">Правила</string>
+    <string name="tab_records">Рекорды</string>
     <string name="tab_authors">Авторы</string>
     <string name="tab_settings">Настройки</string>
 
@@ -46,5 +47,18 @@
     <string name="game_result_score">Ваш результат: %d</string>
     <string name="game_new">Новая игра</string>
     <string name="game_to_menu">В главное меню</string>
+
+    <string name="select_existing_player">Выбрать игрока</string>
+    <string name="select_player_hint">Новый игрок</string>
+    <string name="current_player_none">Текущий игрок не выбран</string>
+    <string name="current_player">Текущий игрок: %1$s</string>
+    <string name="register_player">Зарегистрировать</string>
+    <string name="player_registered">Игрок зарегистрирован</string>
+    <string name="fill_name_surname">Укажите имя и фамилию</string>
+    <string name="select_player_first">Сначала выберите или зарегистрируйте игрока</string>
+
+    <string name="records_title">Рекорды</string>
+    <string name="records_empty">Пока нет сохранённых результатов</string>
+    <string name="record_details">Очки: %1$d · Сложность: %2$d · %3$s</string>
 
 </resources>
