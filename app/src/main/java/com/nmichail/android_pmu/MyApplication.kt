@@ -3,6 +3,8 @@ package com.nmichail.android_pmu
 import android.app.Application
 import androidx.room.Room
 import com.nmichail.android_pmu.data.local.AppDatabase
+import com.nmichail.android_pmu.data.repository.ScoreRepositoryImpl
+import com.nmichail.android_pmu.data.repository.UserRepositoryImpl
 import com.nmichail.android_pmu.domain.repository.ScoreRepository
 import com.nmichail.android_pmu.domain.repository.UserRepository
 
@@ -10,7 +12,6 @@ class MyApplication : Application() {
 
     private lateinit var database: AppDatabase
 
-    // TODO: После реализации repositoryImpl прокинуть их сюда, паттерн Service Locator
     lateinit var userRepository: UserRepository
         private set
 
@@ -25,8 +26,7 @@ class MyApplication : Application() {
             "pmu_game.db"
         ).build()
 
-        // TODO: Вот здесь ты их создашь, когда фрагмент попросит зависимость, класс Application их предоставит
-        // userRepository = UserRepositoryImpl(database.userDao())
-        // scoreRepository = ScoreRepositoryImpl(database.scoreDao())
+        userRepository = UserRepositoryImpl(database.userDao())
+        scoreRepository = ScoreRepositoryImpl(database.scoreDao())
     }
 }
