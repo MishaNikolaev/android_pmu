@@ -53,6 +53,7 @@ class RegistrationFragment : Fragment() {
         val calendarView = view.findViewById<CalendarView>(R.id.calendarView)
         val buttonShowZadiak = view.findViewById<Button>(R.id.showZnak)
         val buttonRegister = view.findViewById<Button>(R.id.btnRegister)
+
         val tvResult = view.findViewById<TextView>(R.id.tvResult)
         val ivZodiac = view.findViewById<ImageView>(R.id.ivZodiac)
         val spinnerPlayers = view.findViewById<Spinner>(R.id.spinnerPlayers)

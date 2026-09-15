@@ -60,9 +60,9 @@ class MainActivity : AppCompatActivity() {
             tab.text = when (position) {
                 0 -> getString(R.string.tab_registration)
                 1 -> getString(R.string.tab_rules)
-                2 -> getString(R.string.tab_records)
-                3 -> getString(R.string.tab_authors)
-                4 -> getString(R.string.tab_settings)
+                2 -> getString(R.string.tab_authors)
+                3 ->  getString(R.string.tab_settings)
+                4 -> getString(R.string.tab_records)
                 else -> ""
             }
         }.attach()
