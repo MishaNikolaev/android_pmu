@@ -20,6 +20,13 @@ interface ScoreDao {
                s.createdAt
         FROM scores AS s
         INNER JOIN users AS u ON u.id = s.userId
+        WHERE s.id = (
+            SELECT s2.id
+            FROM scores AS s2
+            WHERE s2.userId = s.userId
+            ORDER BY s2.score DESC, s2.createdAt DESC
+            LIMIT 1
+        )
         ORDER BY s.score DESC, s.createdAt DESC
         """
     )
