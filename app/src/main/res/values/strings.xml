@@ -6,8 +6,6 @@
 
     <string name="text_greeting">Регистрация</string>
     <string name="choose_gender">Выберите пол</string>
-    <string name="male_gender">Мужчина</string>
-    <string name="female_gender">Женщина</string>
 
     <string-array name="course_list">
         <item>1 курс</item>
@@ -16,7 +14,57 @@
         <item>4 курс</item>
     </string-array>
 
-    <string name="show">Показать</string>
-    <string name="dif_bar">Выберите уровень сложности</string>
     <string name="text_date">Укажите дату рождения</string>
+    <string name="dif_bar">Выберите уровень сложности</string>
+    <string name="male_gender">Мужчина</string>
+    <string name="female_gender">Женщина</string>
+    <string name="show">Показать</string>
+
+    <string name="tab_registration">Регистрация</string>
+    <string name="tab_rules">Правила</string>
+    <string name="tab_records">Рекорды</string>
+    <string name="tab_authors">Авторы</string>
+    <string name="tab_settings">Настройки</string>
+
+    <string name="author_photo">Фото автора</string>
+    <string name="author_nikolaev">Николаев ИП-311</string>
+    <string name="author_terentyev">Терентьев ИП-311</string>
+
+    <string name="settings_title">Настройки игры</string>
+    <string name="settings_game_speed">Скорость игры: %d</string>
+    <string name="settings_max_tarakani">Макс. тараканов на экране: %d</string>
+    <string name="settings_bonus_interval">Интервал бонусов (сек): %d</string>
+    <string name="settings_round_duration">Длительность раунда (сек): %d</string>
+
+    <string name="start_game">Начать игру</string>
+    <string name="game_score">Очки: %d</string>
+    <string name="game_timer">Время: %d</string>
+    <string name="game_pause">Пауза</string>
+    <string name="game_resume">Продолжить</string>
+    <string name="game_exit">Выход</string>
+    <string name="game_over">Раунд окончен! Очки: %d</string>
+    <string name="game_result_title">Результат</string>
+    <string name="game_result_score">Ваш результат: %d</string>
+    <string name="game_new">Новая игра</string>
+    <string name="game_to_menu">В главное меню</string>
+    <string name="game_retry">Повторить</string>
+
+    <string name="select_existing_player">Выбрать игрока</string>
+    <string name="select_player_hint">Новый игрок</string>
+    <string name="current_player_none">Текущий игрок не выбран</string>
+    <string name="current_player">Текущий игрок: %1$s</string>
+    <string name="register_player">Зарегистрировать</string>
+    <string name="player_registered">Игрок зарегистрирован</string>
+    <string name="fill_name_surname">Укажите имя и фамилию</string>
+    <string name="select_player_first">Сначала выберите или зарегистрируйте игрока</string>
+
+    <string name="records_title">Рекорды</string>
+    <string name="records_empty">Пока нет сохранённых результатов</string>
+    <string name="record_details">Очки: %1$d · Сложность: %2$d · %3$s</string>
+
+    <string name="widget_gold_label">Au</string>
+    <string name="widget_gold_description">Курс золота ЦБ</string>
+    <string name="widget_gold_loading">…</string>
+    <string name="widget_gold_rate">%1$s ₽</string>
+
 </resources>

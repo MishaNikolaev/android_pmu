@@ -1,115 +1,143 @@
 package com.nmichail.android_pmu
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.CalendarView
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.RadioGroup
-import android.widget.SeekBar
-import android.widget.Spinner
-import android.widget.TextView
+import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import com.nmichail.android_pmu.domain.Player
+import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
+import com.nmichail.android_pmu.domain.repository.ScoreRepository
+import com.nmichail.android_pmu.presentation.game.ui.GameFragment
+import com.nmichail.android_pmu.presentation.game.ui.GameResultFragment
+import com.nmichail.android_pmu.presentation.main.MainState
+import com.nmichail.android_pmu.presentation.main.MainViewModel
+import com.nmichail.android_pmu.presentation.main.ui.PagerAdapter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        const val TAB_REGISTRATION = 0
+        const val TAB_RULES = 1
+        private const val TAB_COUNT = 5
+        private const val KEY_CURRENT_USER_ID = "current_user_id"
+    }
+
+    private val mainViewModel: MainViewModel by viewModel()
+    private val scoreRepository: ScoreRepository by inject()
+
+    private lateinit var tabsContainer: View
+    private lateinit var gameContainer: View
+    private lateinit var viewPager: ViewPager2
+    private lateinit var tabLayout: TabLayout
+
+    private val currentUser
+        get() = (mainViewModel.state.value as? MainState.Content)?.currentUser
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.registration_form)
+        setContentView(R.layout.activity_main)
 
-        val name = findViewById<EditText>(R.id.name)
-        val surname = findViewById<EditText>(R.id.surname)
-        val otchestvo = findViewById<EditText>(R.id.othcestvo)
-        val genderGroup = findViewById<RadioGroup>(R.id.myRadioGroup)
-        val courseSpinner = findViewById<Spinner>(R.id.combobox)
-        val seekBar = findViewById<SeekBar>(R.id.seekBar)
-        val calendarView = findViewById<CalendarView>(R.id.calendarView)
-        val buttonShowZadiak = findViewById<Button>(R.id.showZnak)
-        val tvResult = findViewById<TextView>(R.id.tvResult)
-        val ivZodiac = findViewById<ImageView>(R.id.ivZodiac)
+        tabsContainer = findViewById(R.id.tabsContainer)
+        gameContainer = findViewById(R.id.gameContainer)
+        tabLayout = findViewById(R.id.tabLayout)
+        viewPager = findViewById(R.id.viewPager)
 
-        var selectedDay = 1
-        var selectedMonth = 1
-        var selectedYear = 2000
+        viewPager.adapter = PagerAdapter(this)
 
-        calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
-            selectedDay = dayOfMonth
-            selectedMonth = month + 1
-            selectedYear = year
-        }
-
-        buttonShowZadiak.setOnClickListener {
-            val day = selectedDay
-            val month = selectedMonth
-            val birthYear = selectedYear
-
-            val zodiac = getZodiac(day, month)
-
-            val gender = when (genderGroup.checkedRadioButtonId) {
-                R.id.male -> "Мужчина"
-                R.id.female -> "Женщина"
-                else -> "Вы не выбрали пол"
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = when (position) {
+                0 -> getString(R.string.tab_registration)
+                1 -> getString(R.string.tab_rules)
+                2 -> getString(R.string.tab_records)
+                3 -> getString(R.string.tab_authors)
+                4 -> getString(R.string.tab_settings)
+                else -> ""
             }
+        }.attach()
 
-            val player = Player(
-                name = name.text.toString(),
-                surname = surname.text.toString(),
-                otchestvo = otchestvo.text.toString(),
-                course = courseSpinner.selectedItemPosition + 1,
-                difficulty = seekBar.progress,
-                birthDay = day,
-                birthMonth = month,
-                zodiac = zodiac,
-                birthYear = birthYear,
-                gender = gender
-            )
+        val savedUserId = savedInstanceState?.getLong(KEY_CURRENT_USER_ID, -1L) ?: -1L
+        if (savedUserId > 0 && currentUser == null) {
+            mainViewModel.restoreUser(savedUserId)
+        }
 
-            tvResult.text =
-                "${player.surname} ${player.name} ${player.otchestvo}\n" +
-                        "Пол: ${player.gender}\n" +
-                        "Курс: ${player.course}\n" +
-                        "Сложность: ${player.difficulty}\n" +
-                        "Дата: ${player.birthDay}.${player.birthMonth}.${player.birthYear}\n" +
-                        "Зодиак: ${player.zodiac}"
-            ivZodiac.setImageResource(zodiacImage(zodiac))
+        val hasGameScreen = supportFragmentManager.findFragmentById(R.id.gameContainer) != null
+
+        if (savedInstanceState != null && hasGameScreen) {
+            tabsContainer.isVisible = false
+            viewPager.isUserInputEnabled = false
+            gameContainer.isVisible = true
+            gameContainer.bringToFront()
+        } else {
+            gameContainer.isVisible = false
+            tabsContainer.isVisible = true
+            viewPager.isUserInputEnabled = true
+            tabsContainer.bringToFront()
         }
     }
 
-    private fun getZodiac(day: Int, month: Int): String {
-        return when (month) {
-            1 -> if (day < 20) "Козерог" else "Водолей"
-            2 -> if (day < 19) "Водолей" else "Рыбы"
-            3 -> if (day < 21) "Рыбы" else "Овен"
-            4 -> if (day < 20) "Овен" else "Телец"
-            5 -> if (day < 21) "Телец" else "Близнецы"
-            6 -> if (day < 21) "Близнецы" else "Рак"
-            7 -> if (day < 23) "Рак" else "Лев"
-            8 -> if (day < 23) "Лев" else "Дева"
-            9 -> if (day < 23) "Дева" else "Весы"
-            10 -> if (day < 23) "Весы" else "Скорпион"
-            11 -> if (day < 22) "Скорпион" else "Стрелец"
-            12 -> if (day < 22) "Стрелец" else "Козерог"
-            else -> ""
-        }
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putLong(KEY_CURRENT_USER_ID, currentUser?.id ?: -1L)
     }
 
-    private fun zodiacImage(zodiac: String): Int {
-        return when (zodiac) {
-            "Овен" -> R.drawable.oven
-            "Телец" -> R.drawable.telec
-            "Близнецы" -> R.drawable.blizneci
-            "Рак" -> R.drawable.rak
-            "Лев" -> R.drawable.lev
-            "Дева" -> R.drawable.deva
-            "Весы" -> R.drawable.vesi
-            "Скорпион" -> R.drawable.scorpion
-            "Стрелец" -> R.drawable.strelec
-            "Козерог" -> R.drawable.kozerog
-            "Водолей" -> R.drawable.vodoley
-            "Рыбы" -> R.drawable.ribi
-            else -> R.drawable.ic_launcher_foreground
+    fun openGame() {
+        if (currentUser == null) {
+            Toast.makeText(this, R.string.select_player_first, Toast.LENGTH_SHORT).show()
+            showTabs(TAB_REGISTRATION)
+            return
         }
+
+        tabsContainer.isVisible = false
+        viewPager.isUserInputEnabled = false
+        gameContainer.isVisible = true
+        gameContainer.bringToFront()
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.gameContainer, GameFragment())
+            .commit()
+    }
+
+    fun openGameResult(score: Int) {
+        currentUser?.let { user ->
+            lifecycleScope.launch(Dispatchers.IO) {
+                scoreRepository.save(
+                    userId = user.id,
+                    score = score,
+                    difficulty = user.difficulty
+                )
+            }
+        }
+
+        tabsContainer.isVisible = false
+        viewPager.isUserInputEnabled = false
+        gameContainer.isVisible = true
+        gameContainer.bringToFront()
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.gameContainer, GameResultFragment.newInstance(score))
+            .commit()
+    }
+
+    fun showTabs(tabIndex: Int = TAB_RULES) {
+        supportFragmentManager.findFragmentById(R.id.gameContainer)?.let { fragment ->
+            supportFragmentManager.beginTransaction()
+                .remove(fragment)
+                .commit()
+        }
+
+        gameContainer.isVisible = false
+        tabsContainer.isVisible = true
+        viewPager.isUserInputEnabled = true
+        tabsContainer.bringToFront()
+        viewPager.setCurrentItem(tabIndex.coerceIn(0, TAB_COUNT - 1), false)
     }
 }

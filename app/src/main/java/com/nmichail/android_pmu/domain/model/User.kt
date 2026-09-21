@@ -1,6 +1,7 @@
-package com.nmichail.android_pmu.domain
+package com.nmichail.android_pmu.domain.model
 
-data class Player(
+data class User(
+    val id: Long,
     val name: String,
     val surname: String,
     val otchestvo: String,
