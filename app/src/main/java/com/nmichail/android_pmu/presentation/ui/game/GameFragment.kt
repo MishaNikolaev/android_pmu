@@ -281,7 +281,7 @@ class GameFragment : Fragment(), SensorEventListener {
                         screamLoaded = true
                     }
                 }
-                screamSoundId = pool.load(requireContext(), R.raw.bug_scream, 1)
+                screamSoundId = pool.load(requireContext(), R.raw.bugs_scream, 1)
             }
     }
 
