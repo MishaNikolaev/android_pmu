@@ -61,4 +61,9 @@
     <string name="records_empty">Пока нет сохранённых результатов</string>
     <string name="record_details">Очки: %1$d · Сложность: %2$d · %3$s</string>
 
+    <string name="widget_gold_label">Au</string>
+    <string name="widget_gold_description">Курс золота ЦБ</string>
+    <string name="widget_gold_loading">…</string>
+    <string name="widget_gold_rate">%1$s ₽</string>
+
 </resources>
