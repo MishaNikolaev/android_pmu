@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.presentation.ui.records
+package com.nmichail.android_pmu.presentation.records
 
 import com.nmichail.android_pmu.domain.model.ScoreRecord
 

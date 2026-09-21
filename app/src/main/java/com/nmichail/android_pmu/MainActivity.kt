@@ -10,13 +10,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import com.nmichail.android_pmu.domain.model.GameSettings
-import com.nmichail.android_pmu.domain.model.User
-import com.nmichail.android_pmu.presentation.ui.PagerAdapter
-import com.nmichail.android_pmu.presentation.ui.game.GameFragment
-import com.nmichail.android_pmu.presentation.ui.game.GameResultFragment
+import com.nmichail.android_pmu.domain.repository.ScoreRepository
+import com.nmichail.android_pmu.presentation.game.ui.GameFragment
+import com.nmichail.android_pmu.presentation.game.ui.GameResultFragment
+import com.nmichail.android_pmu.presentation.main.MainState
+import com.nmichail.android_pmu.presentation.main.MainViewModel
+import com.nmichail.android_pmu.presentation.main.ui.PagerAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,22 +30,16 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_CURRENT_USER_ID = "current_user_id"
     }
 
-    private val userRepository get() = (application as MyApplication).userRepository
-    private val scoreRepository get() = (application as MyApplication).scoreRepository
-
-    var gameSettings: GameSettings = GameSettings(
-        gameSpeed = 50,
-        maxTarakani = 5,
-        bonusIntervalSec = 15,
-        roundDurationSec = 60
-    )
-
-    var currentUser: User? = null
+    private val mainViewModel: MainViewModel by viewModel()
+    private val scoreRepository: ScoreRepository by inject()
 
     private lateinit var tabsContainer: View
     private lateinit var gameContainer: View
     private lateinit var viewPager: ViewPager2
     private lateinit var tabLayout: TabLayout
+
+    private val currentUser
+        get() = (mainViewModel.state.value as? MainState.Content)?.currentUser
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,18 +57,16 @@ class MainActivity : AppCompatActivity() {
             tab.text = when (position) {
                 0 -> getString(R.string.tab_registration)
                 1 -> getString(R.string.tab_rules)
-                2 -> getString(R.string.tab_authors)
-                3 ->  getString(R.string.tab_settings)
-                4 -> getString(R.string.tab_records)
+                2 -> getString(R.string.tab_records)
+                3 -> getString(R.string.tab_authors)
+                4 -> getString(R.string.tab_settings)
                 else -> ""
             }
         }.attach()
 
         val savedUserId = savedInstanceState?.getLong(KEY_CURRENT_USER_ID, -1L) ?: -1L
-        if (savedUserId > 0) {
-            lifecycleScope.launch(Dispatchers.IO) {
-                currentUser = userRepository.getById(savedUserId)
-            }
+        if (savedUserId > 0 && currentUser == null) {
+            mainViewModel.restoreUser(savedUserId)
         }
 
         val hasGameScreen = supportFragmentManager.findFragmentById(R.id.gameContainer) != null

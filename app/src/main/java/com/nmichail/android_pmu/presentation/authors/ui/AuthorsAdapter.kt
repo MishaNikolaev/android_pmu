@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.presentation.ui.authors
+package com.nmichail.android_pmu.presentation.authors.ui
 
 import android.content.Context
 import android.view.LayoutInflater

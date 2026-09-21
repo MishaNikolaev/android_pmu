@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.presentation.ui.game
+package com.nmichail.android_pmu.presentation.game.ui
 
 import android.content.Context
 import android.hardware.Sensor
@@ -12,33 +12,47 @@ import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
 import com.nmichail.android_pmu.MainActivity
 import com.nmichail.android_pmu.R
+import com.nmichail.android_pmu.presentation.game.GameState
+import com.nmichail.android_pmu.presentation.game.GameViewModel
+import com.nmichail.android_pmu.presentation.settings.SettingsState
+import com.nmichail.android_pmu.presentation.settings.SettingsViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class GameFragment : Fragment(), SensorEventListener {
 
     companion object {
         private const val FRAME_DELAY_MS = 16L
-        private const val HIT_POINTS = 10
-        private const val MISS_PENALTY = 5
     }
 
-    private var score = 0
-    private var paused = false
+    private val viewModel: GameViewModel by viewModel()
+    private val settingsViewModel: SettingsViewModel by activityViewModel()
+
     private var stoppedByLifecycle = false
     private var timer: CountDownTimer? = null
-    private var remainingMs = 0L
     private var gameJob: Job? = null
+    private var contentStarted = false
 
+    private lateinit var contentContainer: View
+    private lateinit var progressLoading: ProgressBar
+    private lateinit var errorContainer: View
+    private lateinit var tvError: TextView
+    private lateinit var btnRetry: MaterialButton
     private lateinit var tvScore: TextView
     private lateinit var tvTimer: TextView
     private lateinit var btnPause: MaterialButton
@@ -46,7 +60,7 @@ class GameFragment : Fragment(), SensorEventListener {
 
     private var sensorManager: SensorManager? = null
     private var accelerometer: Sensor? = null
-    private var tiltListening = false
+    private var naklonListening = false
 
     private var soundPool: SoundPool? = null
     private var screamSoundId = 0
@@ -63,6 +77,11 @@ class GameFragment : Fragment(), SensorEventListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        contentContainer = view.findViewById(R.id.contentContainer)
+        progressLoading = view.findViewById(R.id.progressLoading)
+        errorContainer = view.findViewById(R.id.errorContainer)
+        tvError = view.findViewById(R.id.tvError)
+        btnRetry = view.findViewById(R.id.btnRetry)
         tvScore = view.findViewById(R.id.tvScore)
         tvTimer = view.findViewById(R.id.tvTimer)
         btnPause = view.findViewById(R.id.btnPause)
@@ -72,38 +91,39 @@ class GameFragment : Fragment(), SensorEventListener {
         accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         initSound()
 
-        updateScoreLabel()
-        updatePauseIcon()
-
-        gameView.setBugGameListener(object : BugsGameView.BugGameListener {
-            override fun onBugHit() {
-                score += HIT_POINTS
-                updateScoreLabel()
-            }
-
-            override fun onMiss() {
-                score = (score - MISS_PENALTY).coerceAtLeast(0)
-                updateScoreLabel()
-            }
-
-            override fun onBonusCollected() {
-                playScream()
-                startTiltListening()
-            }
-
-            override fun onTiltEnded() {
-                stopTiltListening()
-            }
-        })
-
-        val settings = (requireActivity() as MainActivity).gameSettings
+        val settings = (settingsViewModel.state.value as? SettingsState.Content)?.gameSettings
+            ?: return
         gameView.configure(
             maxBugs = settings.maxTarakani,
             gameSpeed = settings.gameSpeed,
             bonusIntervalSec = settings.bonusIntervalSec
         )
 
+        gameView.setBugGameListener(object : BugsGameView.BugGameListener {
+            override fun onBugHit() {
+                viewModel.onBugHit()
+            }
+
+            override fun onMiss() {
+                viewModel.onMiss()
+            }
+
+            override fun onBonusCollected() {
+                playScream()
+                startNaklonListening()
+            }
+
+            override fun onNaklonModeFinished() {
+                stopNaklonListening()
+            }
+
+            override fun onGoldBugHit() {
+                viewModel.onGoldBugHit()
+            }
+        })
+
         btnPause.setOnClickListener { togglePause() }
+        btnRetry.setOnClickListener { viewModel.retry() }
 
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
@@ -114,38 +134,98 @@ class GameFragment : Fragment(), SensorEventListener {
             }
         )
 
-        remainingMs = settings.roundDurationSec * 1000L
-        startRound()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    render(state)
+                }
+            }
+        }
+
+        viewModel.startRound(settings.roundDurationSec * 1000L)
+    }
+
+    private fun render(state: GameState) {
+        when (state) {
+            GameState.Initial -> Unit
+            is GameState.Loading -> {
+                contentStarted = false
+                stopGameLoop()
+                timer?.cancel()
+                contentContainer.isVisible = false
+                errorContainer.isVisible = false
+                progressLoading.isVisible = true
+            }
+            is GameState.Content -> {
+                progressLoading.isVisible = false
+                errorContainer.isVisible = false
+                contentContainer.isVisible = true
+                tvScore.text = getString(R.string.game_score, state.score)
+                tvTimer.text = getString(R.string.game_timer, (state.remainingMs / 1000L).toInt())
+                if (state.paused) {
+                    btnPause.setIconResource(R.drawable.ic_play)
+                    btnPause.contentDescription = getString(R.string.game_resume)
+                } else {
+                    btnPause.setIconResource(R.drawable.ic_pause)
+                    btnPause.contentDescription = getString(R.string.game_pause)
+                }
+                if (!contentStarted) {
+                    contentStarted = true
+                    startContent(state)
+                }
+            }
+            is GameState.Error -> {
+                contentStarted = false
+                stopGameLoop()
+                timer?.cancel()
+                contentContainer.isVisible = false
+                progressLoading.isVisible = false
+                errorContainer.isVisible = true
+                tvError.text = state.message
+            }
+        }
+    }
+
+    private fun startContent(state: GameState.Content) {
+        gameView.prepareField()
+        if (state.paused) {
+            gameView.setInputEnabled(false)
+            return
+        }
+        startGameLoop()
+        startTimer(state.remainingMs)
     }
 
     override fun onResume() {
         super.onResume()
-        if (stoppedByLifecycle && remainingMs > 0) {
+        val content = viewModel.state.value as? GameState.Content ?: return
+        if (stoppedByLifecycle && content.remainingMs > 0 && !content.paused) {
             stoppedByLifecycle = false
             startGameLoop()
-            startTimer(remainingMs)
-            if (gameView.isTiltMode()) {
-                startTiltListening()
+            startTimer(content.remainingMs)
+            if (gameView.isNaklonMode()) {
+                startNaklonListening()
             }
         }
     }
 
     override fun onPause() {
-        if (::gameView.isInitialized && !paused && remainingMs > 0) {
+        val content = viewModel.state.value as? GameState.Content
+        if (::gameView.isInitialized && content != null && !content.paused && content.remainingMs > 0) {
             stoppedByLifecycle = true
             stopGameLoop()
             gameView.setInputEnabled(false)
             timer?.cancel()
         }
-        stopTiltListening()
+        stopNaklonListening()
         super.onPause()
     }
 
     override fun onDestroyView() {
         timer?.cancel()
         stopGameLoop()
-        stopTiltListening()
-        releaseSound()
+        stopNaklonListening()
+        destroySound()
         if (::gameView.isInitialized) {
             gameView.setInputEnabled(false)
             gameView.setBugGameListener(null)
@@ -155,17 +235,11 @@ class GameFragment : Fragment(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type != Sensor.TYPE_ACCELEROMETER) return
-        if (!::gameView.isInitialized || !gameView.isTiltMode()) return
-        gameView.setTiltAcceleration(event.values[0], event.values[1])
+        if (!::gameView.isInitialized || !gameView.isNaklonMode()) return
+        gameView.setNaklonAcceleration(event.values[0], event.values[1])
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
-
-    private fun startRound() {
-        gameView.prepareField()
-        startGameLoop()
-        startTimer(remainingMs)
-    }
 
     private fun startGameLoop() {
         stopGameLoop()
@@ -190,78 +264,62 @@ class GameFragment : Fragment(), SensorEventListener {
         timer?.cancel()
         timer = object : CountDownTimer(durationMs, 1000L) {
             override fun onTick(millisUntilFinished: Long) {
-                remainingMs = millisUntilFinished
-                tvTimer.text = getString(
-                    R.string.game_timer,
-                    (millisUntilFinished / 1000L).toInt()
-                )
+                viewModel.setRemainingMs(millisUntilFinished)
             }
 
             override fun onFinish() {
-                remainingMs = 0
-                tvTimer.text = getString(R.string.game_timer, 0)
+                viewModel.setRemainingMs(0)
                 finishRound()
             }
         }.start()
     }
 
     private fun togglePause() {
-        paused = !paused
-        if (paused) {
+        viewModel.togglePause()
+        val content = viewModel.state.value as? GameState.Content ?: return
+        if (content.paused) {
             stopGameLoop()
             timer?.cancel()
-            stopTiltListening()
+            stopNaklonListening()
         } else {
             startGameLoop()
-            startTimer(remainingMs)
-            if (gameView.isTiltMode()) {
-                startTiltListening()
+            startTimer(content.remainingMs)
+            if (gameView.isNaklonMode()) {
+                startNaklonListening()
             }
-        }
-        updatePauseIcon()
-    }
-
-    private fun updatePauseIcon() {
-        if (paused) {
-            btnPause.setIconResource(R.drawable.ic_play)
-            btnPause.contentDescription = getString(R.string.game_resume)
-        } else {
-            btnPause.setIconResource(R.drawable.ic_pause)
-            btnPause.contentDescription = getString(R.string.game_pause)
         }
     }
 
     private fun finishRound() {
-        stopTiltListening()
+        val finalScore = (viewModel.state.value as? GameState.Content)?.score ?: 0
+        viewModel.finishRound()
+        stopNaklonListening()
         stopGameLoop()
-        (activity as? MainActivity)?.openGameResult(score)
+        (activity as? MainActivity)?.openGameResult(finalScore)
     }
 
     private fun leaveToTab(tabIndex: Int) {
         timer?.cancel()
-        stopTiltListening()
+        viewModel.finishRound()
+        stopNaklonListening()
         stopGameLoop()
         (activity as? MainActivity)?.showTabs(tabIndex)
     }
 
-    private fun updateScoreLabel() {
-        tvScore.text = getString(R.string.game_score, score)
-    }
-
-    private fun startTiltListening() {
-        if (tiltListening) return
+    private fun startNaklonListening() {
+        if (naklonListening) return
         val manager = sensorManager ?: return
         val sensor = accelerometer ?: return
         manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME)
-        tiltListening = true
+        naklonListening = true
     }
 
-    private fun stopTiltListening() {
-        if (!tiltListening) return
+    private fun stopNaklonListening() {
+        if (!naklonListening) return
         sensorManager?.unregisterListener(this)
-        tiltListening = false
+        naklonListening = false
         if (::gameView.isInitialized) {
-            gameView.setTiltAcceleration(0f, 0f)
+            gameView.setNaklonAcceleration(0f, 0f)
         }
     }
 
@@ -291,7 +349,7 @@ class GameFragment : Fragment(), SensorEventListener {
         pool.play(screamSoundId, 1f, 1f, 1, 0, 1f)
     }
 
-    private fun releaseSound() {
+    private fun destroySound() {
         soundPool?.release()
         soundPool = null
         screamSoundId = 0

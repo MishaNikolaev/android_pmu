@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.presentation.ui.records
+package com.nmichail.android_pmu.presentation.records.ui
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View

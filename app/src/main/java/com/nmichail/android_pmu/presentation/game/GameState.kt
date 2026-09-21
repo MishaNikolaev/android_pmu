@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.presentation.ui.game
+package com.nmichail.android_pmu.presentation.game
 
 sealed interface GameState {
 

@@ -47,6 +47,7 @@
     <string name="game_result_score">Ваш результат: %d</string>
     <string name="game_new">Новая игра</string>
     <string name="game_to_menu">В главное меню</string>
+    <string name="game_retry">Повторить</string>
 
     <string name="select_existing_player">Выбрать игрока</string>
     <string name="select_player_hint">Новый игрок</string>

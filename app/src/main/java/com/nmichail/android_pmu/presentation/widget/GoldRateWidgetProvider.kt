@@ -24,7 +24,7 @@ class GoldRateWidgetProvider : AppWidgetProvider(), KoinComponent {
     private val goldRateRepository: GoldRateRepository by inject()
 
     companion object {
-        const val ACTION_REFRESH = "com.nmichail.pmu_android.widget.REFRESH_GOLD"
+        const val ACTION_REFRESH = "com.nmichail.android_pmu.widget.REFRESH_GOLD"
 
         fun updateViews(
             context: Context,

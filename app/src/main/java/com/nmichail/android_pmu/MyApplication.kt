@@ -1,32 +1,20 @@
 package com.nmichail.android_pmu
 
 import android.app.Application
-import androidx.room.Room
-import com.nmichail.android_pmu.data.local.AppDatabase
-import com.nmichail.android_pmu.data.repository.ScoreRepositoryImpl
-import com.nmichail.android_pmu.data.repository.UserRepositoryImpl
-import com.nmichail.android_pmu.domain.repository.ScoreRepository
-import com.nmichail.android_pmu.domain.repository.UserRepository
+import com.nmichail.android_pmu.di.appModules
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.startKoin
+import org.koin.core.logger.Level
 
 class MyApplication : Application() {
 
-    private lateinit var database: AppDatabase
-
-    lateinit var userRepository: UserRepository
-        private set
-
-    lateinit var scoreRepository: ScoreRepository
-        private set
-
     override fun onCreate() {
         super.onCreate()
-        database = Room.databaseBuilder(
-            this,
-            AppDatabase::class.java,
-            "pmu_game.db"
-        ).build()
-
-        userRepository = UserRepositoryImpl(database.userDao())
-        scoreRepository = ScoreRepositoryImpl(database.scoreDao())
+        startKoin {
+            androidLogger(Level.ERROR)
+            androidContext(this@MyApplication)
+            modules(appModules)
+        }
     }
 }

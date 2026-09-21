@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.presentation.ui.records
+package com.nmichail.android_pmu.presentation.records
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

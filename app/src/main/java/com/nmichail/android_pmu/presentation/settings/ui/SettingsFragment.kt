@@ -1,4 +1,4 @@
-package com.nmichail.android_pmu.presentation.ui.settings
+package com.nmichail.android_pmu.presentation.settings.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,10 +7,14 @@ import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.nmichail.android_pmu.MainActivity
 import com.nmichail.android_pmu.R
+import com.nmichail.android_pmu.presentation.settings.SettingsState
+import com.nmichail.android_pmu.presentation.settings.SettingsViewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class SettingsFragment : Fragment() {
+
+    private val settingsViewModel: SettingsViewModel by activityViewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -23,29 +27,30 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val activity = requireActivity() as MainActivity
+        val settings = (settingsViewModel.state.value as? SettingsState.Content)?.gameSettings
+            ?: return
+
         val seekSpeed = view.findViewById<SeekBar>(R.id.seekGameSpeed)
         val seekMax = view.findViewById<SeekBar>(R.id.seekMaxTarakani)
         val seekBonus = view.findViewById<SeekBar>(R.id.seekBonusInterval)
         val seekRound = view.findViewById<SeekBar>(R.id.seekRoundDuration)
 
-        val settings = activity.gameSettings
         seekSpeed.progress = settings.gameSpeed
         seekMax.progress = settings.maxTarakani
         seekBonus.progress = settings.bonusIntervalSec
         seekRound.progress = settings.roundDurationSec
 
-        seekSpeed.bindTo(view.findViewById(R.id.tvGameSpeed), R.string.settings_game_speed) {
-            activity.gameSettings = activity.gameSettings.copy(gameSpeed = it)
+        seekSpeed.bindTo(view.findViewById(R.id.tvGameSpeed), R.string.settings_game_speed) { progress ->
+            settingsViewModel.updateSettings { it.copy(gameSpeed = progress) }
         }
-        seekMax.bindTo(view.findViewById(R.id.tvMaxTarakani), R.string.settings_max_tarakani) {
-            activity.gameSettings = activity.gameSettings.copy(maxTarakani = it.coerceAtLeast(3))
+        seekMax.bindTo(view.findViewById(R.id.tvMaxTarakani), R.string.settings_max_tarakani) { progress ->
+            settingsViewModel.updateSettings { it.copy(maxTarakani = progress.coerceAtLeast(3)) }
         }
-        seekBonus.bindTo(view.findViewById(R.id.tvBonusInterval), R.string.settings_bonus_interval) {
-            activity.gameSettings = activity.gameSettings.copy(bonusIntervalSec = it.coerceAtLeast(1))
+        seekBonus.bindTo(view.findViewById(R.id.tvBonusInterval), R.string.settings_bonus_interval) { progress ->
+            settingsViewModel.updateSettings { it.copy(bonusIntervalSec = progress.coerceAtLeast(1)) }
         }
-        seekRound.bindTo(view.findViewById(R.id.tvRoundDuration), R.string.settings_round_duration) {
-            activity.gameSettings = activity.gameSettings.copy(roundDurationSec = it.coerceAtLeast(1))
+        seekRound.bindTo(view.findViewById(R.id.tvRoundDuration), R.string.settings_round_duration) { progress ->
+            settingsViewModel.updateSettings { it.copy(roundDurationSec = progress.coerceAtLeast(1)) }
         }
     }
 
