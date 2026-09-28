@@ -2,6 +2,7 @@ package com.nmichail.android_pmu.presentation.game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nmichail.android_pmu.domain.model.GameStats
 import com.nmichail.android_pmu.domain.repository.GoldRateRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,8 +16,6 @@ class GameViewModel(
 ) : ViewModel() {
 
 	companion object {
-
-		const val HIT_POINTS = 10
 		const val MISS_PENALTY = 5
 	}
 
@@ -36,6 +35,8 @@ class GameViewModel(
 				}
 				_state.value = GameState.Content(
 					score = 0,
+					hits = 0,
+					misses = 0,
 					remainingMs = durationMs,
 					paused = false,
 					goldHitPoints = goldHitPoints,
@@ -61,19 +62,28 @@ class GameViewModel(
 		startRound(durationMs)
 	}
 
-	fun onBugHit(points: Int = HIT_POINTS) {
+	fun onBugHit(points: Int) {
 		val content = _state.value as? GameState.Content ?: return
-		_state.value = content.copy(score = content.score + points)
+		_state.value = content.copy(
+			score = content.score + points,
+			hits = content.hits + 1
+		)
 	}
 
 	fun onMiss(penalty: Int = MISS_PENALTY) {
 		val content = _state.value as? GameState.Content ?: return
-		_state.value = content.copy(score = (content.score - penalty).coerceAtLeast(0))
+		_state.value = content.copy(
+			score = (content.score - penalty).coerceAtLeast(0),
+			misses = content.misses + 1
+		)
 	}
 
 	fun onGoldBugHit() {
 		val content = _state.value as? GameState.Content ?: return
-		_state.value = content.copy(score = content.score + content.goldHitPoints)
+		_state.value = content.copy(
+			score = content.score + content.goldHitPoints,
+			hits = content.hits + 1
+		)
 	}
 
 	fun setRemainingMs(ms: Long) {
@@ -84,6 +94,15 @@ class GameViewModel(
 	fun togglePause() {
 		val content = _state.value as? GameState.Content ?: return
 		_state.value = content.copy(paused = !content.paused)
+	}
+
+	fun getFinalStats(): GameStats {
+		val content = _state.value as? GameState.Content
+		return GameStats(
+			score = content?.score ?: 0,
+			hits = content?.hits ?: 0,
+			misses = content?.misses ?: 0
+		)
 	}
 
 	fun finishRound() {
