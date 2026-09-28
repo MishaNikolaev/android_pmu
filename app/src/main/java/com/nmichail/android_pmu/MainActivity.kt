@@ -106,7 +106,7 @@ class MainActivity : AppCompatActivity() {
             .commit()
     }
 
-    fun openGameResult(score: Int) {
+    fun openGameResult(score: Int, hits: Int, misses: Int, accuracy: Float) {
         currentUser?.let { user ->
             lifecycleScope.launch(Dispatchers.IO) {
                 scoreRepository.save(
@@ -123,7 +123,7 @@ class MainActivity : AppCompatActivity() {
         gameContainer.bringToFront()
 
         supportFragmentManager.beginTransaction()
-            .replace(R.id.gameContainer, GameResultFragment.newInstance(score))
+            .replace(R.id.gameContainer, GameResultFragment.newInstance(score, hits, misses, accuracy))
             .commit()
     }
 
