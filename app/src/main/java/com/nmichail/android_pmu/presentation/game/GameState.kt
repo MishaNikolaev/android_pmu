@@ -10,6 +10,8 @@ sealed interface GameState {
 
     data class Content(
         val score: Int,
+        val hits: Int,
+        val misses: Int,
         val remainingMs: Long,
         val paused: Boolean,
         val goldHitPoints: Int,
