@@ -100,8 +100,8 @@ class GameFragment : Fragment(), SensorEventListener {
         )
 
         gameView.setBugGameListener(object : BugsGameView.BugGameListener {
-            override fun onBugHit() {
-                viewModel.onBugHit()
+            override fun onBugHit(scoreValue: Int) {
+                viewModel.onBugHit(scoreValue)
             }
 
             override fun onMiss() {
@@ -291,11 +291,16 @@ class GameFragment : Fragment(), SensorEventListener {
     }
 
     private fun finishRound() {
-        val finalScore = (viewModel.state.value as? GameState.Content)?.score ?: 0
+        val stats = viewModel.getFinalStats()
         viewModel.finishRound()
         stopNaklonListening()
         stopGameLoop()
-        (activity as? MainActivity)?.openGameResult(finalScore)
+        (activity as? MainActivity)?.openGameResult(
+            score = stats.score,
+            hits = stats.hits,
+            misses = stats.misses,
+            accuracy = stats.accuracy
+        )
     }
 
     private fun leaveToTab(tabIndex: Int) {

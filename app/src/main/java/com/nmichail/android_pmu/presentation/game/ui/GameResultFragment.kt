@@ -17,12 +17,19 @@ import com.nmichail.android_pmu.R
 class GameResultFragment : Fragment() {
 
 	companion object {
-
 		private const val ARG_SCORE = "score"
+		private const val ARG_HITS = "hits"
+		private const val ARG_MISSES = "misses"
+		private const val ARG_ACCURACY = "accuracy"
 
-		fun newInstance(score: Int): GameResultFragment {
+		fun newInstance(score: Int, hits: Int, misses: Int, accuracy: Float): GameResultFragment {
 			return GameResultFragment().apply {
-				arguments = Bundle().apply { putInt(ARG_SCORE, score) }
+				arguments = Bundle().apply {
+					putInt(ARG_SCORE, score)
+					putInt(ARG_HITS, hits)
+					putInt(ARG_MISSES, misses)
+					putFloat(ARG_ACCURACY, accuracy)
+				}
 			}
 		}
 	}
@@ -44,9 +51,15 @@ class GameResultFragment : Fragment() {
 			insets
 		}
 
-		val score = arguments?.getInt(ARG_SCORE)
-		view.findViewById<TextView>(R.id.tvResultScore).text =
-			getString(R.string.game_result_score, score)
+		val score = arguments?.getInt(ARG_SCORE) ?: 0
+		val hits = arguments?.getInt(ARG_HITS) ?: 0
+		val misses = arguments?.getInt(ARG_MISSES) ?: 0
+		val accuracy = arguments?.getFloat(ARG_ACCURACY) ?: 0f
+
+		view.findViewById<TextView>(R.id.tvResultScore).text = getString(R.string.game_result_score, score)
+		view.findViewById<TextView>(R.id.tvResultHits).text = getString(R.string.game_result_hits, hits)
+		view.findViewById<TextView>(R.id.tvResultMisses).text = getString(R.string.game_result_misses, misses)
+		view.findViewById<TextView>(R.id.tvResultAccuracy).text = getString(R.string.game_result_accuracy, accuracy)
 
 		view.findViewById<Button>(R.id.btnNewGame).setOnClickListener {
 			(activity as? MainActivity)?.openGame()
@@ -58,7 +71,6 @@ class GameResultFragment : Fragment() {
 		requireActivity().onBackPressedDispatcher.addCallback(
 			viewLifecycleOwner,
 			object : OnBackPressedCallback(true) {
-
 				override fun handleOnBackPressed() {
 					(activity as? MainActivity)?.showTabs(MainActivity.TAB_RULES)
 				}
