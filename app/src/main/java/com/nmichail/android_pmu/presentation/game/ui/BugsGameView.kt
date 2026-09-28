@@ -9,6 +9,8 @@ import android.view.View
 import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.core.graphics.drawable.toBitmap
 import com.nmichail.android_pmu.R
+import com.nmichail.android_pmu.domain.model.Bug
+import com.nmichail.android_pmu.domain.model.BugType
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
@@ -20,27 +22,28 @@ class BugsGameView @JvmOverloads constructor(
 ) : View(context, attrs) {
 
     companion object {
-        private const val BASE_SPEED = 4f
+        private const val BASE_SPEED = 0.002f
         private const val MIN_BUGS = 3
-        private const val BUG_SIZE_DP = 72f
         private const val BONUS_SIZE_DP = 56f
         private const val NAKLON_DURATION_MS = 8_000L
-        private const val NAKLON_FORCE = 0.55f
-        private const val MAX_NAKLON_SPEED = 18f
+        private const val NAKLON_FORCE = 0.0004f
+        private const val MAX_NAKLON_SPEED = 0.012f
         private const val GOLD_BUG_INTERVAL_MS = 20_000L
         private const val BONUS_LIFETIME_MS = 5_000L
     }
 
     interface BugGameListener {
-        fun onBugHit()
+        fun onBugHit(scoreValue: Int)
         fun onMiss()
         fun onBonusCollected()
         fun onNaklonModeFinished()
         fun onGoldBugHit()
     }
 
+    private var bugIdCounter = 0L
     private val bugs = mutableListOf<Bug>()
-    private val bugBitmaps = mutableListOf<Bitmap>()
+    private val bitmapCache = mutableMapOf<Int, Bitmap>()
+
     private var bonusBitmap: Bitmap? = null
     private var goldBugBitmap: Bitmap? = null
     private var goldBug: Bug? = null
@@ -119,8 +122,12 @@ class BugsGameView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val now = System.currentTimeMillis()
-        bugs.forEach { bug -> drawBug(canvas, bug, now) }
-        goldBug?.let { drawBug(canvas, it, now) }
+        val w = width.toFloat()
+        val h = height.toFloat()
+        if (w <= 0f || h <= 0f) return
+
+        bugs.forEach { bug -> drawBug(canvas, bug, w, h, now) }
+        goldBug?.let { drawBug(canvas, it, w, h, now) }
 
         if (bonusVisible) {
             bonusBitmap?.let { bmp ->
@@ -129,15 +136,21 @@ class BugsGameView @JvmOverloads constructor(
         }
     }
 
-    private fun drawBug(canvas: Canvas, bug: Bug, now: Long) {
+    private fun drawBug(canvas: Canvas, bug: Bug, w: Float, h: Float, now: Long) {
+        val pxX = bug.x * w
+        val pxY = bug.y * h
+        val pxRadius = bug.size * minOf(w, h)
+        val bmp = bitmapCache[bug.drawableResId] ?: return
+
         canvas.save()
-        canvas.translate(bug.x, bug.y)
+        canvas.translate(pxX, pxY)
         val angle =
-            Math.toDegrees(kotlin.math.atan2(bug.vy.toDouble(), bug.vx.toDouble()))
-                .toFloat() + 90f
+            Math.toDegrees(kotlin.math.atan2(bug.vy.toDouble(), bug.vx.toDouble())).toFloat() + 90f
         val wiggle = sin(now / 45.0).toFloat() * 12f
         canvas.rotate(angle + wiggle)
-        canvas.drawBitmap(bug.bitmap, -bug.radius, -bug.radius, null)
+
+        val destRect = android.graphics.RectF(-pxRadius, -pxRadius, pxRadius, pxRadius)
+        canvas.drawBitmap(bmp, null, destRect, null)
         canvas.restore()
     }
 
@@ -146,6 +159,10 @@ class BugsGameView @JvmOverloads constructor(
             return true
         }
 
+        val w = width.toFloat()
+        val h = height.toFloat()
+        if (w <= 0f || h <= 0f) return true
+
         if (bonusVisible && hypot(event.x - bonusX, event.y - bonusY) <= bonusRadius) {
             collectBonus()
             invalidate()
@@ -153,20 +170,29 @@ class BugsGameView @JvmOverloads constructor(
         }
 
         val gold = goldBug
-        if (gold != null && hypot(event.x - gold.x, event.y - gold.y) <= gold.radius) {
-            goldBug = null
-            nextGoldBugAtMs = System.currentTimeMillis() + GOLD_BUG_INTERVAL_MS
-            listener?.onGoldBugHit()
-            invalidate()
-            return true
+        if (gold != null) {
+            val pxX = gold.x * w
+            val pxY = gold.y * h
+            val pxRadius = gold.size * minOf(w, h)
+            if (hypot(event.x - pxX, event.y - pxY) <= pxRadius) {
+                goldBug = null
+                nextGoldBugAtMs = System.currentTimeMillis() + GOLD_BUG_INTERVAL_MS
+                listener?.onGoldBugHit()
+                invalidate()
+                return true
+            }
         }
 
         val index = bugs.indexOfLast { bug ->
-            hypot(event.x - bug.x, event.y - bug.y) <= bug.radius
+            val pxX = bug.x * w
+            val pxY = bug.y * h
+            val pxRadius = bug.size * minOf(w, h)
+            hypot(event.x - pxX, event.y - pxY) <= pxRadius
         }
+
         if (index >= 0) {
-            bugs.removeAt(index)
-            listener?.onBugHit()
+            val hitBug = bugs.removeAt(index)
+            listener?.onBugHit(hitBug.scoreValue)
             spawnBug()
         } else {
             listener?.onMiss()
@@ -203,15 +229,11 @@ class BugsGameView @JvmOverloads constructor(
     }
 
     private fun updateBugs() {
-        val w = width.toFloat()
-        val h = height.toFloat()
-        if (w <= 0f || h <= 0f) return
-
-        bugs.forEach { stepBug(it, w, h) }
-        goldBug?.let { stepBug(it, w, h) }
+        bugs.forEach { stepBug(it) }
+        goldBug?.let { stepBug(it) }
     }
 
-    private fun stepBug(bug: Bug, w: Float, h: Float) {
+    private fun stepBug(bug: Bug) {
         if (naklonMode) {
             bug.vx += -naklonAx * NAKLON_FORCE
             bug.vy += naklonAy * NAKLON_FORCE
@@ -232,19 +254,19 @@ class BugsGameView @JvmOverloads constructor(
         bug.x += bug.vx
         bug.y += bug.vy
 
-        if (bug.x - bug.radius < 0f) {
-            bug.x = bug.radius
+        if (bug.x - bug.size < 0f) {
+            bug.x = bug.size
             bug.vx = -bug.vx
-        } else if (bug.x + bug.radius > w) {
-            bug.x = w - bug.radius
+        } else if (bug.x + bug.size > 1f) {
+            bug.x = 1f - bug.size
             bug.vx = -bug.vx
         }
 
-        if (bug.y - bug.radius < 0f) {
-            bug.y = bug.radius
+        if (bug.y - bug.size < 0f) {
+            bug.y = bug.size
             bug.vy = -bug.vy
-        } else if (bug.y + bug.radius > h) {
-            bug.y = h - bug.radius
+        } else if (bug.y + bug.size > 1f) {
+            bug.y = 1f - bug.size
             bug.vy = -bug.vy
         }
     }
@@ -269,52 +291,76 @@ class BugsGameView @JvmOverloads constructor(
     private fun maybeSpawnGoldBug(now: Long) {
         if (goldBug != null || width == 0 || height == 0) return
         if (now < nextGoldBugAtMs) return
-        goldBug = createBug(goldBugBitmap ?: return, isGold = true)
+        goldBug = createGoldBug()
     }
 
     private fun spawnBug() {
-        if (bugBitmaps.isEmpty() || width == 0 || height == 0) return
-        val bug = createBug(bugBitmaps.random(), isGold = false) ?: return
+        val randomValue = Random.nextFloat()
+        val type = when {
+            randomValue < 0.20f -> BugType.RARE
+            randomValue < 0.55f -> BugType.FAST
+            else -> BugType.NORMAL
+        }
+        val bug = createBug(type)
         bugs += bug
     }
 
-    private fun createBug(bitmap: Bitmap, isGold: Boolean): Bug? {
-        val radius = bitmap.width / 2f
-        if (radius * 2f >= width || radius * 2f >= height) return null
-
-        val speed = (BASE_SPEED + Random.nextFloat() * BASE_SPEED) * speedFactor
+    private fun createBug(type: BugType): Bug {
+        val speed = (BASE_SPEED + Random.nextFloat() * BASE_SPEED) * speedFactor * type.speedFactor
         val angle = Random.nextFloat() * (Math.PI * 2).toFloat()
+        val size = type.sizeRatio / 2f
         return Bug(
-            x = Random.nextFloat() * (width - 2 * radius) + radius,
-            y = Random.nextFloat() * (height - 2 * radius) + radius,
+            id = ++bugIdCounter,
+            x = Random.nextFloat() * (1f - 2 * size) + size,
+            y = Random.nextFloat() * (1f - 2 * size) + size,
             vx = cos(angle) * speed,
             vy = sin(angle) * speed,
-            bitmap = bitmap,
-            radius = radius,
-            isGold = isGold
+            size = size,
+            type = type,
+            scoreValue = type.scoreValue,
+            drawableResId = type.drawableResId
+        )
+    }
+
+    private fun createGoldBug(): Bug {
+        val speed = (BASE_SPEED + Random.nextFloat() * BASE_SPEED) * speedFactor
+        val angle = Random.nextFloat() * (Math.PI * 2).toFloat()
+        val size = 0.10f
+        return Bug(
+            id = ++bugIdCounter,
+            x = Random.nextFloat() * (1f - 2 * size) + size,
+            y = Random.nextFloat() * (1f - 2 * size) + size,
+            vx = cos(angle) * speed,
+            vy = sin(angle) * speed,
+            size = size,
+            type = BugType.NORMAL,
+            scoreValue = 0,
+            drawableResId = R.drawable.gold_tarakan,
+            isGold = true
         )
     }
 
     private fun ensureBitmaps() {
-        if (bugBitmaps.isNotEmpty() && bonusBitmap != null && goldBugBitmap != null) return
         val density = resources.displayMetrics.density
-        val bugSize = (BUG_SIZE_DP * density).toInt().coerceAtLeast(48)
-        if (bugBitmaps.isEmpty()) {
-            listOf(R.drawable.beetle, R.drawable.beetle2, R.drawable.tarkan).forEach { resId ->
-                val drawable = getDrawable(context, resId) ?: return@forEach
-                bugBitmaps += drawable.toBitmap(bugSize, bugSize)
+        val sizePx = (120f * density).toInt().coerceAtLeast(80)
+
+        BugType.entries.forEach { type ->
+            if (!bitmapCache.containsKey(type.drawableResId)) {
+                getDrawable(context, type.drawableResId)?.toBitmap(sizePx, sizePx)?.let {
+                    bitmapCache[type.drawableResId] = it
+                }
             }
         }
-        if (goldBugBitmap == null) {
-            val drawable = getDrawable(context, R.drawable.gold_tarakan)
-            if (drawable != null) {
-                goldBugBitmap = drawable.toBitmap(bugSize, bugSize)
+
+        if (!bitmapCache.containsKey(R.drawable.gold_tarakan)) {
+            getDrawable(context, R.drawable.gold_tarakan)?.toBitmap(sizePx, sizePx)?.let {
+                bitmapCache[R.drawable.gold_tarakan] = it
             }
         }
+
         if (bonusBitmap == null) {
             val size = (BONUS_SIZE_DP * density).toInt().coerceAtLeast(40)
-            val drawable = getDrawable(context, R.drawable.bonus) ?: return
-            bonusBitmap = drawable.toBitmap(size, size)
+            bonusBitmap = getDrawable(context, R.drawable.bonus)?.toBitmap(size, size)
         }
     }
 }
