@@ -18,14 +18,14 @@ class RegistrationViewModel(
     val state: StateFlow<RegistrationState> = _state.asStateFlow()
 
     fun loadUsers() {
-        val previous = _state.value as? RegistrationState.Content
         viewModelScope.launch {
-            if (previous == null) {
+            if (_state.value !is RegistrationState.Content) {
                 _state.value = RegistrationState.Loading
             }
             try {
                 val users = userRepository.getAll()
-                _state.value = previous?.copy(users = users) ?: emptyContent(users)
+                val content = _state.value as? RegistrationState.Content
+                _state.value = content?.copy(users = users) ?: RegistrationState.Content(users = users)
             } catch (e: Exception) {
                 _state.value = RegistrationState.Error(
                     message = e.message ?: "Не удалось загрузить игроков"
@@ -91,7 +91,7 @@ class RegistrationViewModel(
 
     fun clearForm() {
         val content = _state.value as? RegistrationState.Content ?: return
-        _state.value = emptyContent(content.users)
+        _state.value = RegistrationState.Content(users = content.users)
     }
 
     fun showPreview() {
@@ -122,22 +122,6 @@ class RegistrationViewModel(
 
     fun retry() {
         loadUsers()
-    }
-
-    private fun emptyContent(users: List<User>): RegistrationState.Content {
-        return RegistrationState.Content(
-            name = "",
-            surname = "",
-            otchestvo = "",
-            gender = "",
-            course = 1,
-            difficulty = 50,
-            birthDay = 1,
-            birthMonth = 1,
-            birthYear = 2000,
-            users = users,
-            preview = null
-        )
     }
 
     private fun buildPlayer(state: RegistrationState.Content): Player {
