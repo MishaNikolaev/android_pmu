@@ -5,12 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.nmichail.android_pmu.domain.model.Player
 import com.nmichail.android_pmu.domain.model.User
 import com.nmichail.android_pmu.domain.repository.UserRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class RegistrationViewModel(
     private val userRepository: UserRepository
@@ -26,9 +24,7 @@ class RegistrationViewModel(
                 _state.value = RegistrationState.Loading
             }
             try {
-                val users = withContext(Dispatchers.IO) {
-                    userRepository.getAll()
-                }
+                val users = userRepository.getAll()
                 _state.value = previous?.copy(users = users) ?: emptyContent(users)
             } catch (e: Exception) {
                 _state.value = RegistrationState.Error(
@@ -112,12 +108,8 @@ class RegistrationViewModel(
         }
         viewModelScope.launch {
             try {
-                val saved = withContext(Dispatchers.IO) {
-                    userRepository.register(player)
-                }
-                val users = withContext(Dispatchers.IO) {
-                    userRepository.getAll()
-                }
+                val saved = userRepository.register(player)
+                val users = userRepository.getAll()
                 _state.value = content.copy(preview = player, users = users)
                 onSuccess(saved)
             } catch (e: Exception) {

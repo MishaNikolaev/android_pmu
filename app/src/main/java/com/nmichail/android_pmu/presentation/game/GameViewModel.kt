@@ -4,12 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nmichail.android_pmu.domain.model.GameStats
 import com.nmichail.android_pmu.domain.repository.GoldRateRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class GameViewModel(
 	private val goldRateRepository: GoldRateRepository
@@ -29,10 +27,8 @@ class GameViewModel(
 		viewModelScope.launch {
 			_state.value = GameState.Loading(roundDurationMs = durationMs)
 			try {
-				val goldHitPoints = withContext(Dispatchers.IO) {
-					val rate = goldRateRepository.loadRate()
-					(rate.valueRubPerGram / 100.0).toInt()
-				}
+				val rate = goldRateRepository.loadRate()
+				val goldHitPoints = (rate.valueRubPerGram / 100.0).toInt()
 				_state.value = GameState.Content(
 					score = 0,
 					hits = 0,

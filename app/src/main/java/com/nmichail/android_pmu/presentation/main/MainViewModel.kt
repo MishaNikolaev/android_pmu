@@ -4,12 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nmichail.android_pmu.domain.model.User
 import com.nmichail.android_pmu.domain.repository.UserRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class MainViewModel(
     private val userRepository: UserRepository
@@ -28,9 +26,7 @@ class MainViewModel(
         viewModelScope.launch {
             _state.value = MainState.Loading
             try {
-                val user = withContext(Dispatchers.IO) {
-                    userRepository.getById(userId)
-                }
+                val user = userRepository.getById(userId)
                 _state.value = MainState.Content(currentUser = user)
             } catch (e: Exception) {
                 _state.value = MainState.Error(
